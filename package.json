@@ -1,8 +1,9 @@
 {
 	"name": "deferrant",
-	"version": "1.0.0",
+	"version": "1.1.1",
 	"description": "A promise exposing it's .resolve .reject. Alternative to Promise.defer.",
-	"main": "deferrant.js",
+	"main": "index.js",
+	"module": "deferrant.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
@@ -10,7 +11,20 @@
 		"type": "git",
 		"url": "https://archive.voodoowarez.com/deferrant"
 	},
-	"keywords": ["promise", "deferrable", "defer"],
+	"keywords": [
+		"promise",
+		"deferrable",
+		"defer"
+	],
 	"author": "rektide de la faye",
-	"license": "MIT"
+	"license": "MIT",
+	"@std/esm": {
+		"esm": "js",
+		"cjs": {
+			"namedExports": true
+		}
+	},
+	"dependencies": {
+		"@std/esm": "^0.23.0"
+	}
 }
