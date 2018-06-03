@@ -31,8 +31,6 @@ export class Deferrant extends Promise{
 	}
 }
 
-function create(){
-	return Deferrant.create()
-}
+const create = Deferrant.create
 
 export { create, create as default};
