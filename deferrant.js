@@ -1,3 +1,5 @@
+import multifun from "multifun"
+
 const
   Resolve= Symbol.for("deferrant:resolve"),
   Reject= Symbol.for("deferrant:reject"),
@@ -9,15 +11,6 @@ function Noop(){}
 function identity(i){
 	return i
 }
-function runAll( all, val){
-	if( all){
-		if( all.forEach){
-			all.forEach( fn=> fn( val))
-		}else{
-			all( val)
-		}
-	}
-}
 
 // resolution functions
 function resolve( val){
@@ -25,7 +18,7 @@ function resolve( val){
 	this.fulfilled= "resolved"
 	this.resolve= noop
 	this.reject= noop
-	runAll( this[ Resolve], val)
+	this[ Resolve]( val)
 	return this
 }
 function reject( err){
@@ -33,7 +26,7 @@ function reject( err){
 	this.fulfilled= "rejected"
 	this.resolve= noop
 	this.reject= noop
-	runAll( this[ Reject], err)
+	this[ Reject]( val)
 	return this
 }
 
@@ -59,15 +52,15 @@ const _finally= ({
 function arrayitize( o){
 	const resolve= o[ Resolve]
 	if( resolve instanceof Function){
-		o[ Resolve]= [ resolve]
+		o[ Resolve]= multifun( resolve)
 	}else if( !resolve){
-		o[ Resolve]= []
+		o[ Resolve]= multifun()
 	}
 	const reject= o[ Reject]
 	if( reject instanceof Function){
-		o[ Reject]= [ reject]
+		o[ Reject]= multifun( reject)
 	}else if(!reject){
-		o[ Reject]= []
+		o[ Reject]= multifun()
 	}
 }
 
