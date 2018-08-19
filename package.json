@@ -25,6 +25,5 @@
 		}
 	},
 	"dependencies": {
-		"@std/esm": "^0.23.0"
 	}
 }
