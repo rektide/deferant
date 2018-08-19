@@ -19,6 +19,7 @@ function resolve( val){
 	this.resolve= noop
 	this.reject= noop
 	this[ Resolve]( val)
+	this[ Resolve]= null
 	return this
 }
 function reject( err){
@@ -27,6 +28,7 @@ function reject( err){
 	this.resolve= noop
 	this.reject= noop
 	this[ Reject]( val)
+	this[ Reject]= null
 	return this
 }
 
