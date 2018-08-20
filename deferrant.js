@@ -16,8 +16,8 @@ function identity(i){
 function resolve( val){
 	this.resolved= val
 	this.fulfilled= "resolved"
-	this.resolve= noop
-	this.reject= noop
+	this.resolve= Noop
+	this.reject= Noop
 	this[ Resolve]( val)
 	this[ Resolve]= null
 	return this
@@ -25,8 +25,8 @@ function resolve( val){
 function reject( err){
 	this.rejected= err
 	this.fulfilled= "rejected"
-	this.resolve= noop
-	this.reject= noop
+	this.resolve= Noop
+	this.reject= Noop
 	this[ Reject]( val)
 	this[ Reject]= null
 	return this
@@ -86,24 +86,32 @@ export {
 
 export function deferrantize( self, _resolve, _reject){
 	Object.defineProperties( self, {
+		resolve: { // wrapped resolve
+			value: resolve,
+			writable: true
+		},
+		reject: { // wrapped reject
+			value: reject,
+			writable: true
+		},
+
 		[ Resolve]: { // super's resolve
-			value: _resolve
+			value: _resolve,
+			writable: true
 		},
 		[ Reject]: { // super's reject
-			value: _reject
+			value: _reject,
+			writable: true
 		},
 		resolved: reserved, // resolved value
 		rejected: reserved, // rejected value
 		fulfilled: reserved, // state
-		resolve: { // wrapped resolve
-			value: resolve
-		},
-		reject: { // wrapped reject
-			value: reject
-		},
 		promise: { // make compatible with `Deferred` by this (<--pun!) alias.
 			value: self
 		},
+		[ Symbol.species]: {
+			value: Promise.constructor
+		}
 	})
 	const
 	  conditionals= {},
@@ -130,15 +138,15 @@ export class Deferrant extends Promise{
 	constructor( executor){
 		let _resolve, _reject
 		super(function( resolve, reject){
-			executor= executor|| noop
+			executor= executor|| Noop
 			_resolve= resolve
 			_reject= reject
-			executor()
+			return executor( _resolve, _reject)
 		})
 		deferrantize( this, _resolve, _reject)
 	}
-	static create(){
-		return new Deferrant( noop)
+	static create( fn){
+		return new Deferrant( fn|| Noop)
 	}
 	static deferrantize( o){
 		return deferrantize( o)
