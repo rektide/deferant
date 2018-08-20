@@ -54,15 +54,15 @@ const _finally= ({
 function arrayitize( o){
 	const resolve= o[ Resolve]
 	if( resolve instanceof Function){
-		o[ Resolve]= multifun( resolve)
+		o[ Resolve]= new multifun( resolve)
 	}else if( !resolve){
-		o[ Resolve]= multifun()
+		o[ Resolve]= new multifun()
 	}
 	const reject= o[ Reject]
 	if( reject instanceof Function){
-		o[ Reject]= multifun( reject)
+		o[ Reject]= new multifun( reject)
 	}else if(!reject){
-		o[ Reject]= multifun()
+		o[ Reject]= new multifun()
 	}
 }
 
@@ -113,20 +113,25 @@ export function deferrantize( self, _resolve, _reject){
 			value: Promise.constructor
 		}
 	})
-	const
-	  conditionals= {},
-	  conditional= false
+	const conditionals= {}
+	let conditional= false
 	if( !self.then){
-		conditionals.then= then
 		conditional= true
+		conditionals.then= {
+			value: then
+		}
 		arrayitize( self)
 	}
 	if( !self.catch){
-		conditionals.catch= _catch
+		conditionals.catch= {
+			value: _catch
+		}
 		conditional= true
 	}
 	if( !self.finally){
-		conditionals.finally= _finally
+		conditionals.finally= {
+			value: _finally
+		}
 		conditional= true
 	}
 	if( conditional){

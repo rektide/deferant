@@ -20,7 +20,6 @@ tape( "create & use a deferrant as a classic defer", async function( t){
 tape( "create & use a deferrant", async function( t){
 	t.plan( 4)
 	const d= deferrant.default()
-	console.log(d, d.resolve)
 	d.resolve( 42)
 	const d2= await d
 	t.equal( d2, 42, "meaning is resolved")
@@ -31,6 +30,12 @@ tape( "create & use a deferrant", async function( t){
 	t.end()
 })
 
-tape( "upgrade an object to a deferrant", function( t){
+tape( "upgrade an object to a deferrant", async function( t){
+	t.plan( 1)
+	const o= {}
+	deferrant.deferrantize( o)
+	o.resolve( 6* 9)
+	const val= await o.then( a=> a*2)
+	t.equal( val, 108)
 	t.end()
 })
