@@ -35,6 +35,15 @@ function reject( err){
 // promise functions
 function then( onFulfilled, onRejected){
 	return new Promise(( res, rej)=> {
+		// we're already resolved; do now
+		if( this.fulfilled){
+			if( this.fulfilled=== "resolved"){
+				res( onFulfilled( this.resolved))
+			}else{
+				rej( onRejected( this.rejected))
+			}
+			return
+		}
 		this[ Resolve].push( v=> {
 			try{
 				res( onFulfilled( v))
