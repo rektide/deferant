@@ -2,6 +2,8 @@ import deferrant from ".."
 
 import tape from "tape"
 
+process.on("unhandledRejection", console.error)
+
 tape( "create & use a deferrant as a classic defer", async function( t){
 	t.plan( 3)
 	const d= deferrant.default()
@@ -30,12 +32,22 @@ tape( "create & use a deferrant", async function( t){
 	t.end()
 })
 
-tape( "upgrade an object to a deferrant", async function( t){
+tape( "upgrade an object to a deferrant, .then then resolve", async function( t){
 	t.plan( 1)
-	const o= {}
+	const o= { sample: "hello"}
 	deferrant.deferrantize( o)
+	o.resolve( 6* 9) // 54
+	const doubled= o.then( a=> a* 3)
+	t.equal( await doubled, 162)
+	t.end()
+})
+
+tape( ".then then resolve an upgraded object", async function( t){
+	t.plan( 1)
+	const o= { sample: "hello"}
+	deferrant.deferrantize( o)
+	const doubled= o.then( a=> a* 2)
 	o.resolve( 6* 9)
-	const val= await o.then( a=> a*2)
-	t.equal( val, 108)
+	t.equal( await doubled, 108)
 	t.end()
 })

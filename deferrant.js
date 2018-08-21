@@ -35,10 +35,23 @@ function reject( err){
 // promise functions
 function then( onFulfilled, onRejected){
 	return new Promise(( res, rej)=> {
-		this[ Resolve].push( res)
-		this[ Reject].push( rej)
+		this[ Resolve].push( v=> {
+			try{
+				res( onFulfilled( v))
+			}catch( ex){
+				rej( onRejected( ex))
+			}
+		})
+		this[ Reject].push( v=> {
+			try{
+				res( onRejected( v))
+			}catch( ex){
+				rej( ex)
+			}
+		})
 	})
 }
+
 // promise functions with reserved names, via iife & object structuring
 const _catch= ({
 	[ "catch"]: function( onRejected){
