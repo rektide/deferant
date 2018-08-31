@@ -25,7 +25,7 @@
 		}
 	},
 	"dependencies": {
-		"esm": "^3.0.77",
+		"esm": "^3.2.18",
 		"multifun": "^1.0.0"
 	},
 	"devDependencies": {
