@@ -1,6 +1,6 @@
 {
 	"name": "deferrant",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "A promise exposing it's .resolve .reject. Alternative to Promise.defer.",
 	"main": "index.js",
 	"module": "deferrant.js",
