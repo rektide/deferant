@@ -1,27 +1,22 @@
 # Deferrant
 
-> A libre-maximale, radically-unsafe alternative to Promise.defer's Deferred.
+> Non-dogmatic ultra-light Promise/defer implementation
 
-Deferrant is a promise which is it's own [Deferred](https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred) implementation, and which synchronously exposes it's state.
+Deferrant exists to provide a lower weight, more flexible to use alternative to `defer` and promise itself.
 
-## Safe delegation of responsibilities
+Deferrant is a Promise which exposes it's own `resolve` and `reject` methods as members. This provides an alternative to the semi-standard [Deferred](https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred) implementation. Additionally, unlike most promises, Deferrant exposes it's state synchronously.
 
-Deferred's are regarded as "safe" because one can pass the promise without fear that the receiver might alter the behavior in unanticipated ways.
+# Differences from promise & defer
 
-Deferrant is created because letting software do things the original implementer never imagined is glorious and brilliant and bright & we ought accept & enable that kind of cavalier libre behavior. so Deferrant gives the author & the user the freedom of having resolve & reject right there, ready for anyone to use, anytime, however they see fit, hopefully in some semi-responsible manner, but, maybe, you know, not.
+Deferrant varies from promises in a number of key ways, usually by permitting the developer considerably more leeway with how they wish to work things.
 
-```
-const d= Deferrant()
-d.then(console.log) // deferrant is a promise
-d.resolve("trust") // resolve called on the deferrant
-//=> trust
-```
+## Non-dogmatic access to state
 
-# Safe access to state
+Promises can traditionally only have their state introspected asynchronously: this forms an inherent barrier to [unleashing Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony), in that if one needs to read a value to compute, they are forced to either a) do so asynchronously, or b) cook up a bunch of hacks to store promise state in a sychronous shadow state holding structure they stew up.
 
-Promises are "safe" because their state can only be introspected asynchronously: they posses this inherent barrier to [unleashing Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony), in that if one needs to read a value to compute, they are forced to either a) do so asynchronously, or b) cook up a bunch of hacks to store promise state in a sychronous shadow state holding structure they stew up.
+The downside of this is that all code that may touch anything asynchronous more or less has to be asynchronous, and this frequently comes with an enormous performance penalty. Rather than being able to write a piece of code that functions synchronously and fast when given synchronous data, and functions asynchronously and slowly when given asychronous data, we either have to write the code twice & take care to explicitly invoke the right method, or we take the hit of being async each and every time.
 
-Deferrant is created to once again to trust that user & author are aware of or willing to encounter dangers, and want to do state read synchronously anyways or leave the possibility open to folk. Because we trust them, and they're smart people, and maybe the code just runs better or is easier to author that way.  Because if you want to check the state of a promise, you ought be able to. We trust you.
+Deferrant trusts you. It exposes it's current resolved/rejected state, and the resolved or rejected value.
 
 ```
 const d= Deferrant()
@@ -35,3 +30,18 @@ d.reject("safe")
 console.log(d.rejected) //=> safe
 console.log(d.fulfilled? "choice": "black iron prison")
 ```
+
+## Non-dogmatic delegation of responsibilities
+
+Deferred's are regarded as "safe" because one can pass the promise without fear that the receiver might alter the behavior in unanticipated ways. It delegates that there is a separate promise, and a sepaarate fulfiller mechanism, and makes the two differentt.
+
+Deferrant conjoins the two, halving the number of allocations required & reducing the number of objects one has to manage.
+
+```
+const d= Deferrant()
+d.then(console.log) // deferrant is a promise
+d.resolve("trust") // resolve called on the deferrant
+//=> trust (as .then is fired)
+```
+
+If one wanted to create such a security barrier with Deferrant, one could wrap the deferrant in another promise: `const d= Deferrant(), promise= Promise.resolve(d)`.
