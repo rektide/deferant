@@ -6,8 +6,8 @@ const
   reserved= {
 	value: undefined,
 	writable: true
-  }
-function Noop(){}
+  };
+export function Noop(){};
 function identity(i){
 	return i
 }
@@ -101,9 +101,6 @@ export {
   then,
   _catch as catch,
   _finally as finally,
-
-  /* misc helper */
-  Noop
 }
 
 export function deferrantize( self, _resolve, _reject){
@@ -162,7 +159,7 @@ export function deferrantize( self, _resolve, _reject){
 	return self
 }
 export class Deferrant extends Promise{
-	constructor( executor){
+	constructor( executor= Noop){
 		let _resolve, _reject
 		super(function( resolve, reject){
 			executor= executor|| Noop
