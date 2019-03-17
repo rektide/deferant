@@ -33,12 +33,19 @@ function reject( err){
 }
 
 // promise functions
-function then( onFulfilled, onRejected){
+async function then( onFulfilled, onRejected){
 	return new Promise(( res, rej)=> {
-		if( this.fulfilled){
+		const fulfilled= this.fulfilled
+		if( fulfilled){
+			const
+			  cur= this[ fulfilled],
+			  isResolved= fulfilled=== "resolved",
+			  next= isResolved? onFulfilled( cur): onRejected( cur)
+			isResolved? res( next): rej( next)
+		}else{
+			this[ Resolve].push( res)
+			this[ Reject].push( rej)
 		}
-		this[ Resolve].push( res)
-		this[ Reject].push( rej)
 	})
 }
 // promise functions with reserved names, via iife & object structuring
@@ -171,6 +178,7 @@ export class Deferrant extends Promise{
 	}
 }
 
+export const deferrant = Deferrant.create
 export const create = Deferrant.create
 
 export { create as default};
