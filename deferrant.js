@@ -138,7 +138,7 @@ const
 	}
   }
 
-export function deferrantize( self, _resolve, __reject){
+export function deferrantize( self, _resolve, _reject){
 	const
 	  // if we're already a promise we'll have these
 	  noThen= !self.then,
