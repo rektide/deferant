@@ -1,4 +1,4 @@
-import multifun from "multifun"
+import multifunc from "multifunc"
 
 const
   Resolve= Symbol.for("deferrant:resolve"),
@@ -76,15 +76,15 @@ const _finally= ({
 function arrayitize( o){
 	const resolve= o[ Resolve]
 	if( resolve instanceof Function){
-		o[ Resolve]= new multifun( resolve)
+		o[ Resolve]= new multifunc( resolve)
 	}else if( !resolve){
-		o[ Resolve]= new multifun()
+		o[ Resolve]= new multifunc()
 	}
 	const reject= o[ Reject]
 	if( reject instanceof Function){
-		o[ Reject]= new multifun( reject)
+		o[ Reject]= new multifunc( reject)
 	}else if(!reject){
-		o[ Reject]= new multifun()
+		o[ Reject]= new multifunc()
 	}
 }
 
