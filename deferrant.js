@@ -1,3 +1,4 @@
+"use module"
 import multifunc from "multifunc"
 
 const
@@ -10,26 +11,6 @@ const
 export function Noop(){};
 function identity(i){
 	return i
-}
-
-// resolution functions
-function resolve( val){
-	this.resolved= val
-	this.fulfilled= "resolved"
-	this.resolve= Noop
-	this.reject= Noop
-	this[ Resolve]( val)
-	this[ Resolve]= null
-	return this
-}
-function reject( err){
-	this.rejected= err
-	this.fulfilled= "rejected"
-	this.resolve= Noop
-	this.reject= Noop
-	this[ Reject]( val)
-	this[ Reject]= null
-	return this
 }
 
 // promise functions
@@ -46,6 +27,20 @@ async function then( onFulfilled, onRejected){
 			this[ Resolve].push( res)
 			this[ Reject].push( rej)
 		}
+		this[ Resolve].push( function( v){
+			try{
+				res( onFulfilled( v))
+			}catch( ex){
+				rej( onRejected( ex))
+			}
+		})
+		this[ Reject].push( function( v){
+			try{
+				res( onRejected( v))
+			}catch( ex){
+				rej( ex)
+			}
+		})
 	})
 }
 
@@ -76,107 +71,131 @@ function arrayitize( o){
 	}
 }
 
+const staticProps= {
+	resolved: reserved, // resolved value
+	rejected: reserved, // rejected value
+	fulfilled: reserved // state
+}
+
+export function deferrantize( o, _resolve, _reject){
+	const props= {
+		...staticProps,
+		[ Resolve]: { // super's resolve
+			value: _resolve,
+			writable: true
+		},
+		[ Reject]: { // super's reject
+			value: _reject,
+			writable: true
+		},
+		promise: { // make compatible with `Deferred` by this (<--pun!) alias.
+			value: o
+		},
+	}
+	let missingThen= !o.then
+	if( missingThen){
+		props.then= {
+			value: then
+		}
+	}
+	if( !o.catch){
+		props.catch= {
+			value: _catch
+		}
+	}
+	if( !o.finally){
+		props.finally= {
+			value: _finally
+		}
+	}
+	if( !o.resolve){
+		props.resolve= { // wrapped resolve
+			value: Deferrant.prototype.resolve,
+			writable: true
+		}
+		props.reject= { // wrapped reject
+			value: Deferrant.prototype.reject,
+			writable: true
+		}
+	}
+	Object.defineProperties( o, props)
+	if( missingThen){
+		arrayitize( o)
+	}
+	return o
+}
+export class Deferrant extends Promise{
+	static get [Symbol.species](){
+		return Promise
+	}
+	constructor( resolver= Noop){
+		let _resolve, _reject
+		super( function( resolve, reject){
+			_resolve= resolve
+			_reject= reject
+		})
+		deferrantize( this, _resolve, _reject)
+		if( this.executor){
+			this.executor( _resolve, _reject)
+		}
+		if( resolver){
+			resolver( _resolve, _reject)
+		}
+	}
+	static create( fn= Noop, klass= (this&& this.prototype instanceof Deferrant&& this)|| Deferrant){
+		return new klass( fn)
+	}
+	static deferrantize( o){
+		return deferrantize( o)
+	}
+	resolve( val){
+		if( !this[ Resolve]){
+			return
+		}
+		this.resolved= val
+		this.fulfilled= "resolved"
+
+		const resolve= this[ Resolve]
+		this[ Reject]= null
+		this[ Resolve]= null
+		resolve.call( this, val)
+		return this
+	}
+	reject( err){
+		if( !this[ Reject]){
+			return
+		}
+		this.rejected= err
+		this.fulfilled= "rejected"
+
+		const reject= this[ Reject]
+		this[ Resolve]= null
+		this[ Reject]= null
+		reject.call( this, err)
+		return this
+	}
+}
+
+const
+  create= Deferrant.create,
+  __resolve= Deferrant.prototype.resolve,
+  __reject= Deferrant.prototype.reject
+
 export {
+  create as default,
+  create as create,
+  create as deferrant,
+
   // symbols
   Resolve,
   Reject,
 
   /* resolution methods */
-  resolve,
-  reject,
+  __resolve as resolve,
+  __reject as reject,
 
   /* promise implementations */
   then,
   _catch as catch,
   _finally as finally,
 }
-
-// whether we are a promise, or are just a naked object, we're going to need these to become a deferrant
-const
-  commonProps= {
-	resolve: { // wrapped resolve
-		value: resolve,
-		writable: true
-	},
-	reject: { // wrapped reject
-		value: reject,
-		writable: true
-	},
-
-	[ Resolve]: { // super's resolve
-		value: null,
-		writable: true
-	},
-	[ Reject]: { // super's reject
-		value: null,
-		writable: true
-	},
-	resolved: reserved, // resolved value
-	rejected: reserved, // rejected value
-	fulfilled: reserved, // state
-	promise: { // make compatible with `Deferred` by this (<--pun!) alias.
-		value: null,
-		writable: true
-	},
-	[ Symbol.species]: {
-		value: Promise.constructor
-	}
-  },
-  // regular objects being promoted to thenables need these additional methods
-  promotedProps= {
-	...commonProps,
-	then: {
-	  value: then
-	},
-	catch: {
-	  value: _catch
-	},
-	finally: {
-	  value: _finally
-	}
-  }
-
-export function deferrantize( self, _resolve, _reject){
-	const
-	  // if we're already a promise we'll have these
-	  noThen= !self.then,
-	  noCatch= !self.catch,
-	  noFinally= !self.finally,
-	  promoted= noThen|| noCatch|| noFinally, // please no promises with no finally lol
-	  props= promoted? promotedProps: commonProps
-	Object.defineProperties( self, props)
-
-	// set that which ought be set:
-	if( _resolve){
-		self[ Resolve]= _resolve
-		self[ Reject]= _reject
-	}
-	if( promoted){
-		arrayitize( self)
-	}
-	self.promise= self
-	return self
-}
-export class Deferrant extends Promise{
-	constructor( executor= Noop){
-		let _resolve, _reject
-		super(function( resolve, reject){
-			executor= executor|| Noop
-			_resolve= resolve
-			_reject= reject
-			return executor( _resolve, _reject)
-		})
-		deferrantize( this, _resolve, _reject)
-	}
-	static create( fn){
-		return new Deferrant( fn|| Noop)
-	}
-	static deferrantize( o){
-		return deferrantize( o)
-	}
-}
-
-export const deferrant = Deferrant.create
-export const create = Deferrant.create
-
-export { create as default};

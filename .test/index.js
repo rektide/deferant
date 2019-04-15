@@ -1,6 +1,9 @@
+"use module"
 import { deferrant, deferrantize } from ".."
 
 import tape from "tape"
+
+import {} from "./extends.js"
 
 tape( "create & use a deferrant as a classic defer", async function( t){
 	t.plan( 3)
@@ -33,7 +36,7 @@ tape( "create & use a deferrant", async function( t){
 tape( "upgrade an object to a deferrant, .then then resolve", async function( t){
 	t.plan( 1)
 	const o= { sample: "hello"}
-	deferrant.deferrantize( o)
+	deferrantize( o)
 	o.resolve( 6* 9) // 54
 	const tripled= o.then( a=> a* 3)
 	t.equal( await tripled, 162)
@@ -43,7 +46,7 @@ tape( "upgrade an object to a deferrant, .then then resolve", async function( t)
 tape( ".then then resolve an upgraded object", async function( t){
 	t.plan( 1)
 	const o= { sample: "hello"}
-	deferrant.deferrantize( o)
+	deferrantize( o)
 	const doubled= o.then( a=> a* 2)
 	o.resolve( 6* 9)
 	t.equal( await doubled, 108)
