@@ -1,10 +1,10 @@
-import deferrant from ".."
+import { deferrant, deferrantize } from ".."
 
 import tape from "tape"
 
 tape( "create & use a deferrant as a classic defer", async function( t){
 	t.plan( 3)
-	const d= deferrant.default()
+	const d= deferrant()
 	d.then( function( d2){
 		t.equal( d2, 42, "found our resolved value")
 		// we can equivalently use d.promise, which is the same as d
@@ -19,7 +19,7 @@ tape( "create & use a deferrant as a classic defer", async function( t){
 
 tape( "create & use a deferrant", async function( t){
 	t.plan( 4)
-	const d= deferrant.default()
+	const d= deferrant()
 	d.resolve( 42)
 	const d2= await d
 	t.equal( d2, 42, "meaning is resolved")

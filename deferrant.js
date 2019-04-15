@@ -33,31 +33,19 @@ function reject( err){
 }
 
 // promise functions
-function then( onFulfilled, onRejected){
+async function then( onFulfilled, onRejected){
 	return new Promise(( res, rej)=> {
-		// we're already resolved; do now
-		if( this.fulfilled){
-			if( this.fulfilled=== "resolved"){
-				res( onFulfilled( this.resolved))
-			}else{
-				rej( onRejected( this.rejected))
-			}
-			return
+		const fulfilled= this.fulfilled
+		if( fulfilled){
+			const
+			  cur= this[ fulfilled],
+			  isResolved= fulfilled=== "resolved",
+			  next= isResolved? onFulfilled( cur): onRejected( cur)
+			isResolved? res( next): rej( next)
+		}else{
+			this[ Resolve].push( res)
+			this[ Reject].push( rej)
 		}
-		this[ Resolve].push( v=> {
-			try{
-				res( onFulfilled( v))
-			}catch( ex){
-				rej( onRejected( ex))
-			}
-		})
-		this[ Reject].push( v=> {
-			try{
-				res( onRejected( v))
-			}catch( ex){
-				rej( ex)
-			}
-		})
 	})
 }
 
@@ -103,59 +91,70 @@ export {
   _finally as finally,
 }
 
-export function deferrantize( self, _resolve, _reject){
-	Object.defineProperties( self, {
-		resolve: { // wrapped resolve
-			value: resolve,
-			writable: true
-		},
-		reject: { // wrapped reject
-			value: reject,
-			writable: true
-		},
+// whether we are a promise, or are just a naked object, we're going to need these to become a deferrant
+const
+  commonProps= {
+	resolve: { // wrapped resolve
+		value: resolve,
+		writable: true
+	},
+	reject: { // wrapped reject
+		value: reject,
+		writable: true
+	},
 
-		[ Resolve]: { // super's resolve
-			value: _resolve,
-			writable: true
-		},
-		[ Reject]: { // super's reject
-			value: _reject,
-			writable: true
-		},
-		resolved: reserved, // resolved value
-		rejected: reserved, // rejected value
-		fulfilled: reserved, // state
-		promise: { // make compatible with `Deferred` by this (<--pun!) alias.
-			value: self
-		},
-		[ Symbol.species]: {
-			value: Promise.constructor
-		}
-	})
-	const conditionals= {}
-	let conditional= false
-	if( !self.then){
-		conditional= true
-		conditionals.then= {
-			value: then
-		}
+	[ Resolve]: { // super's resolve
+		value: null,
+		writable: true
+	},
+	[ Reject]: { // super's reject
+		value: null,
+		writable: true
+	},
+	resolved: reserved, // resolved value
+	rejected: reserved, // rejected value
+	fulfilled: reserved, // state
+	promise: { // make compatible with `Deferred` by this (<--pun!) alias.
+		value: null,
+		writable: true
+	},
+	[ Symbol.species]: {
+		value: Promise.constructor
+	}
+  },
+  // regular objects being promoted to thenables need these additional methods
+  promotedProps= {
+	...commonProps,
+	then: {
+	  value: then
+	},
+	catch: {
+	  value: _catch
+	},
+	finally: {
+	  value: _finally
+	}
+  }
+
+export function deferrantize( self, _resolve, _reject){
+	const
+	  // if we're already a promise we'll have these
+	  noThen= !self.then,
+	  noCatch= !self.catch,
+	  noFinally= !self.finally,
+	  promoted= noThen|| noCatch|| noFinally, // please no promises with no finally lol
+	  props= promoted? promotedProps: commonProps
+	Object.defineProperties( self, props)
+
+	// set that which ought be set:
+	if( _resolve){
+		self[ Resolve]= _resolve
+		self[ Reject]= _reject
+	}
+	if( promoted){
 		arrayitize( self)
 	}
-	if( !self.catch){
-		conditionals.catch= {
-			value: _catch
-		}
-		conditional= true
-	}
-	if( !self.finally){
-		conditionals.finally= {
-			value: _finally
-		}
-		conditional= true
-	}
-	if( conditional){
-		Object.defineProperties( self, conditionals)
-	}
+	self.promise= self
 	return self
 }
 export class Deferrant extends Promise{
@@ -177,6 +176,7 @@ export class Deferrant extends Promise{
 	}
 }
 
+export const deferrant = Deferrant.create
 export const create = Deferrant.create
 
 export { create as default};
