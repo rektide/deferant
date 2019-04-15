@@ -26,7 +26,7 @@ tape( "create & use a deferrant", async function( t){
 	d.resolve( 42)
 	const d2= await d
 	t.equal( d2, 42, "meaning is resolved")
-	t.equal( d.resolved, 42, "`resolved` is now synchronously readable")
+	t.equal( d.data, 42, "`resolved` is now synchronously readable")
 	t.equal( d.fulfilled, "resolved", "understood this was a reosolve not a reject")
 	const d3= await d.promise
 	t.equal( d3, 42, "d.promise yielded meaning")

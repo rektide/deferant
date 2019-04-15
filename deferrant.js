@@ -10,7 +10,7 @@ const
 	writable: true
   };
 export function Noop(){};
-function identity(i){
+function Identity(i){
 	return i
 }
 
@@ -92,7 +92,7 @@ export class Deferrant extends Promise{
 		if( !this[ Resolve]){
 			return
 		}
-		this.resolved= val
+		this.data= val
 		this.fulfilled= "resolved"
 
 		const resolve= this[ Resolve]
@@ -105,7 +105,7 @@ export class Deferrant extends Promise{
 		if( !this[ Reject]){
 			return
 		}
-		this.rejected= err
+		this.data= err
 		this.fulfilled= "rejected"
 
 		const reject= this[ Reject]
@@ -129,38 +129,72 @@ export class Deferrant extends Promise{
 * Normally it should not be necessary to use this class.
 */
 export class InternalDeferrant extends Deferrant{
-	then( onFulfilled, onRejected){
+	then( onResolved, onRejected){
 		return new Promise(( res, rej)=> {
-			// we're already resolved; do now
 			if( this.fulfilled){
-				if( this.fulfilled=== "resolved"){
-					res( onFulfilled( this.resolved))
-				}else{
-					rej( onRejected( this.rejected))
+				// we're already resolved; do now
+				const
+				  isResolved= this.fulfilled=== "resolved",
+				  handler= isResolved? onResolved: onRejected,
+				  data= this.data
+				if( !handler){
+					// pass along
+					(isResolved? res: rej)( data)
+				}
+				try{
+					// try to call handler
+					res( handler( data))
+				}catch( err){
+					// handler failed, so reject
+					rej( err)
 				}
 				return
 			}
-			this[ Resolve].push( function( v){
+			// add resolve/reject handlers
+			this[ Resolve].push( onResolved&& function( resolved){
 				try{
-					res( onFulfilled( v))
-				}catch( ex){
-					rej( onRejected( ex))
+					res( onResolved( resolved))
+				}catch( err){
+					rej( err)
 				}
+			}|| function( resolved){
+				res( resolved)
 			})
-			this[ Reject].push( function( v){
+			this[ Reject].push( onRejected&& function( rejected){
 				try{
-					res( onRejected( v))
-				}catch( ex){
-					rej( ex)
+					res( onRejected( rejected))
+				}catch( err){
+					rej( err)
 				}
+			}|| function( rejected){
+				rej( rejected)
 			})
 		})
 	}
 	catch( onRejected){
-		return this.then( identity, onRejected)
+		return this.then( Identity, onRejected)
 	}
-	finally( fn){
-		return this.then( fn, fn)
+	async finally( onFinally){
+		if( this.fulfilled){
+			if( onFinally){
+				onFinally()
+			}
+			return Promise[ this.fulfilled=== "resolved"? "resolve": "reject"]( this.data)
+		}
+		return new Promise(( res, rej)=> {
+			this[ Resolve].push( function( resolved){
+				if( onFulfilled){
+					onFulfilled()
+				}
+				res( resolved)
+			})
+			this[ Reject].push( function( rejected){
+				if( onFulfilled){
+					onFulfilled()
+				}
+				rej( rejected)
+			})
+		})
 	}
 }
 
