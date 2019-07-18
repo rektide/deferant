@@ -4,6 +4,7 @@ import { deferrant, deferrantize } from ".."
 import tape from "tape"
 
 import {} from "./extends.js"
+import {} from "./before-after.js"
 
 tape( "create & use a deferrant as a classic defer", async function( t){
 	t.plan( 3)

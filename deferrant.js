@@ -71,18 +71,50 @@ export class Deferrant extends Promise{
 		return Promise
 	}
 
-	constructor({ resolver= Noop, signal, signalMap}= {}){
+	constructor({ resolver= Noop, signal, signalMap, before, after, afterResolve, afterReject}= {}){
 		let _resolve, _reject
 		super( function( resolve, reject){
-			_resolve= resolve
-			_reject= reject
+			if( before|| after){
+				_resolve= async ( val)=> {
+					await before
+					await afterResolve
+					await after
+					resolve( val)
+					return val
+				}
+			}else{
+				_resolve= resolve
+			}
+			if( before|| afterReject){
+				_reject= async ( val)=> {
+					await before
+					await afterReject
+					await after
+					reject( val)
+					return val
+				}
+			}else{
+				_reject= reject
+			}
 		})
 		deferrantize( this, _resolve, _reject)
-		if( this.executor){
-			this.executor( _resolve, _reject)
+
+		const exec= ()=>{
+			if( this.fulfilled){
+				return
+			}
+			if( this.executor){
+				this.executor( _resolve, _reject)
+			}
+			if( resolver){
+				resolver( _resolve, _reject)
+			}
 		}
-		if( resolver){
-			resolver( _resolve, _reject)
+
+		if( before){
+			before.then( exec)
+		}else{
+			exec()
 		}
 		if( signal){
 			this.addSignal( signal)
