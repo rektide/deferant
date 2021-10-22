@@ -1,5 +1,5 @@
 "use module"
-import { Deferrant} from ".."
+import { Deferrant} from "../deferrant.js"
 
 import tape from "tape"
 

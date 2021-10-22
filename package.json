@@ -1,12 +1,13 @@
 {
 	"name": "deferrant",
+	"type": "module",
 	"version": "1.6.0",
 	"description": "A promise exposing it's .resolve .reject. Alternative to Promise.defer.",
 	"main": "deferrant.js",
 	"type": "module",
 	"module": "deferrant.js",
 	"scripts": {
-		"test": "node -r esm .test"
+		"test": "node .test"
 	},
 	"repository": {
 		"type": "git",
@@ -24,7 +25,6 @@
 		"multifunc": "^1.1.2"
 	},
 	"devDependencies": {
-		"esm": "^3.2.20",
 		"tape": "^4.9.1"
 	}
 }
