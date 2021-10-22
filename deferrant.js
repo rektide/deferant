@@ -76,9 +76,9 @@ export class Deferrant extends Promise{
 		super( function( resolve, reject){
 			if( before|| after){
 				_resolve= async ( val)=> {
-					await before
-					await afterResolve
-					await after
+					await (before instanceof Function? before( this): before)
+					await (afterResolve instanceof Function? afterResolve( this): afterResolve)
+					await (after instanceof Function? after( this): after)
 					resolve( val)
 					return val
 				}
@@ -87,9 +87,9 @@ export class Deferrant extends Promise{
 			}
 			if( before|| afterReject){
 				_reject= async ( val)=> {
-					await before
-					await afterReject
-					await after
+					await (before instanceof Function? before( this): before)
+					await (afterReject instanceof Function? afterReject( this): afterReject)
+					await (after instanceof Function? after( this): after)
 					reject( val)
 					return val
 				}
